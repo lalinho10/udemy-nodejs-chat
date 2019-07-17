@@ -19,18 +19,15 @@ if (!searchParams.has('name') || !searchParams.has('room') || searchParams.get('
         console.log('Conectado al servidor');
 
         socket.emit('enterChat', user, function(response) {
-            console.log(response);
+            if (response.ok) {
+                showGroupContainer(user.room, response.users);
+            }
         });
     });
 
 
-    socket.on('disconnect', function() {
-        console.log('Se perdió conexión con el servidor');
-    });
-
-
-    socket.on('sendMessage', function(response) {
-        console.log(response);
+    socket.on('sendMessage', function(messageObject) {
+        addMessageToCoversation(messageObject, false);
     });
 
 
@@ -39,5 +36,13 @@ if (!searchParams.has('name') || !searchParams.has('room') || searchParams.get('
     });
 
 
-    /*socket.emit('sendMessage', { message: 'Message text' });*/
+    socket.on('showGroupUsers', function(groupUsers) {
+        showGroupContainer(user.room, groupUsers);
+    });
+
+
+    socket.on('disconnect', function() {
+        console.log('Se perdió conexión con el servidor');
+    });
+
 }

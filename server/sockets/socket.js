@@ -15,24 +15,27 @@ io.on('connection', (client) => {
         } else if (!data.room) {
             callback({ ok: false, message: 'El grupo es necesario' });
         } else {
-            let chatUsers = users.addUser(client.id, data.name, data.room);
+            let groupUsers = users.addUser(client.id, data.name, data.room);
 
             client.join(data.room);
 
             let message = createMessage('app', `El usuario ${ data.name } entró al grupo`);
 
             client.to(data.room).emit('sendMessage', message);
+            client.to(data.room).emit('showGroupUsers', groupUsers);
 
-            callback({ ok: true, users: chatUsers });
+            callback({ ok: true, users: groupUsers });
         }
     });
 
-    client.on('sendMessage', (data) => {
+    client.on('sendMessage', (data, callback) => {
         let sender = users.getUser(client.id);
 
         let message = createMessage(sender.name, data.message);
 
         client.to(sender.room).emit('sendMessage', message);
+
+        callback(message);
     });
 
     client.on('privateMessage', (data) => {
@@ -50,6 +53,7 @@ io.on('connection', (client) => {
             let message = createMessage('app', `El usuario ${ removedUser.name } abandonó el grupo`);
 
             client.to(removedUser.room).emit('sendMessage', message);
+            client.to(removedUser.room).emit('showGroupUsers', users.getGroupUser(removedUser.room));
         }
     });
 
